@@ -104,6 +104,14 @@ class PaymentsTests(TestCase):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 302)
 
+    def test_login_hides_app_navigation_for_anonymous_users(self):
+        self.client.logout()
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<aside class="sidebar">')
+        self.assertContains(response, 'class="app app-login"')
+        self.assertContains(response, "Ingresar")
+
     def test_other_user_cannot_read_or_edit_movement(self):
         movement = self.movement(owner=self.other, account=self.other_account)
         self.assertEqual(self.client.get(reverse("edit", args=[movement.pk])).status_code, 404)

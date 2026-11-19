@@ -29,6 +29,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .nav-item.active { background: #294238; color: #d7eddf; }
 .nav-badge { margin-left: auto; background: #c5e0c8; color: #253e31; min-width: 20px; padding: 2px 4px; border-radius: 5px; text-align: center; font-size: 11px; font-weight: 700; }
 .app { margin-left: 220px; }
+.app.app-login { margin-left: 0; }
 .topbar { min-height: 64px; background: white; border-bottom: 1px solid var(--line); padding: 8px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .breadcrumb { color: var(--muted); font-size: 14px; }
 .mobile-brand { display: none; }
