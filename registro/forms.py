@@ -1,56 +1,12 @@
-import warnings
 from decimal import Decimal
 
 from django import forms
-from PIL import Image, UnidentifiedImageError
 
 from .models import Account, Movement
 
-MAX_RECEIPT_BYTES = 8 * 1024 * 1024
-MAX_RECEIPT_PIXELS = 20_000_000
 
-
-class UploadForm(forms.Form):
-    receipt = forms.FileField(
-        required=False,
-        label="Comprobante",
-        widget=forms.ClearableFileInput(attrs={
-            "accept": "image/jpeg,image/png,image/webp", "required": True,
-        }),
-    )
-    ocr_text = forms.CharField(required=False, max_length=30_000, widget=forms.HiddenInput)
-
-    def clean_receipt(self):
-        receipt = self.cleaned_data.get("receipt")
-        if not receipt:
-            return receipt
-        if receipt.size > MAX_RECEIPT_BYTES:
-            raise forms.ValidationError("La imagen no puede superar los 8 MB.")
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("error", Image.DecompressionBombWarning)
-                image = Image.open(receipt)
-                if image.format not in {"JPEG", "PNG", "WEBP"}:
-                    raise forms.ValidationError("Usa una imagen JPG, PNG o WebP.")
-                if image.width * image.height > MAX_RECEIPT_PIXELS:
-                    raise forms.ValidationError("La imagen es demasiado grande. Reducila a menos de 20 megapixeles.")
-                extension = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}[image.format]
-                image.verify()
-        except (
-            UnidentifiedImageError, OSError, Image.DecompressionBombError,
-            Image.DecompressionBombWarning,
-        ) as exc:
-            raise forms.ValidationError("El archivo no es una imagen valida o es demasiado grande.") from exc
-        finally:
-            receipt.seek(0)
-        receipt.name = f"comprobante.{extension}"
-        return receipt
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if not cleaned_data.get("receipt") and not cleaned_data.get("ocr_text", "").strip():
-            raise forms.ValidationError("Selecciona una imagen para leer o completa los datos a mano.")
-        return cleaned_data
+class ReceiptTextForm(forms.Form):
+    ocr_text = forms.CharField(max_length=30_000)
 
 
 class MovementForm(forms.ModelForm):

@@ -132,6 +132,8 @@ small { line-height: 1.6; }
 .upload-form small { display: block; color: var(--muted); margin-top: 8px; font-size: 12px; }
 .ocr-status { color: #426078; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .ocr-status:empty { display: none; }
+.button-spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: button-spin 0.7s linear infinite; }
+@keyframes button-spin { to { transform: rotate(360deg); } }
 .movement-fields { border: 0; margin: 20px 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; min-width: 0; }
 .form-field { min-width: 0; }
 .span-two { grid-column: span 2; }

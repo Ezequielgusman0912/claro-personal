@@ -14,7 +14,7 @@ from django.utils import timezone
 from openpyxl import load_workbook
 from PIL import Image
 
-from .forms import MAX_RECEIPT_BYTES, MovementForm, UploadForm
+from .forms import MovementForm
 from .models import Account, Movement
 from .ocr import ExtractionError, extract_receipt, parse_receipt
 
@@ -218,21 +218,7 @@ class PaymentsTests(TestCase):
                 self.assertEqual(response.context["total_count"], 0)
                 self.assertEqual(self.client.get("/exportar/" + query).status_code, 400)
 
-    def test_server_ocr_fallback_does_not_save_the_uploaded_image(self):
-        with self.assertLogs("registro.views", level="WARNING"):
-            response = self.client.post("/comprobantes/subir/", {"receipt": image_upload()})
-        movement = Movement.objects.get()
-        self.assertRedirects(response, reverse("edit", args=[movement.pk]))
-        self.assertEqual(movement.status, "pending")
-        self.assertIsNone(movement.amount)
-        self.assertIsNone(movement.date)
-        self.assertFalse(movement.receipt)
-        self.assertEqual(movement.receipt_hash, "")
-        self.assertEqual(movement.extracted_text, "")
-        self.assertEqual(list(Path(self.media.name).iterdir()), [])
-        self.assertEqual(self.client.get(reverse("receipt", args=[movement.pk])).status_code, 404)
-
-    def test_browser_ocr_data_is_saved_without_sending_or_storing_the_image(self):
+    def test_browser_ocr_returns_suggestions_without_saving_a_movement(self):
         text = (
             "Mercado Pago\nComprobante de transferencia\n"
             "16/noviembre/2026 a las 19:56.\n$ 11.400\nOrigen y destino\n"
@@ -241,50 +227,42 @@ class PaymentsTests(TestCase):
             "CUIT/CUIL: 20-00000000-2\n"
             "N.° de operación de Mercado Pago\n188952849457"
         )
-        response = self.client.post("/comprobantes/subir/", {
-            "ocr_text": text,
-            "amount": "1", "recipient": "No confiable",
+        response = self.client.post(reverse("extract_receipt_data"), {"ocr_text": text})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"], {
+            "amount": "11400", "date": "2026-11-16",
+            "recipient": "Jorge Alberto Emilio Fenoglio",
+            "operation_id": "188952849457", "currency": "ARS",
+            "account": str(self.destination.pk),
         })
-        movement = Movement.objects.get()
-        self.assertRedirects(response, reverse("edit", args=[movement.pk]))
-        self.assertEqual(movement.amount, Decimal("11400"))
-        self.assertEqual(movement.date, date(2026, 11, 16))
-        self.assertEqual(movement.recipient, "Jorge Alberto Emilio Fenoglio")
-        self.assertEqual(movement.operation_id, "188952849457")
-        self.assertEqual(movement.status, "pending")
-        self.assertEqual(movement.extracted_data["amount"], "11400")
-        self.assertEqual(movement.extracted_text, "")
-        self.assertFalse(movement.receipt)
-        self.assertEqual(movement.receipt_hash, "")
+        self.assertFalse(Movement.objects.exists())
         self.assertEqual(list(Path(self.media.name).iterdir()), [])
 
-    def test_browser_ocr_text_is_size_limited(self):
-        response = self.client.post("/comprobantes/subir/", {
+    def test_browser_ocr_text_is_size_limited_without_saving(self):
+        response = self.client.post(reverse("extract_receipt_data"), {
             "ocr_text": "x" * 30_001,
         })
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Movement.objects.exists())
 
-    def test_upload_requires_an_image_or_browser_ocr_text(self):
-        response = self.client.post("/comprobantes/subir/", {})
+    def test_receipt_extraction_requires_text(self):
+        response = self.client.post(reverse("extract_receipt_data"), {})
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Movement.objects.exists())
 
-    @patch("registro.views.extract_receipt")
-    def test_extraction_proposes_data_without_confirming(self, extract):
-        extract.return_value = ("Monto: $ 1.234,56", {
-            "amount": "1234.56", "recipient": "Comercio", "date": "2026-11-12",
+    def test_receipt_extraction_saves_only_after_manual_form_submission(self):
+        response = self.client.post(reverse("extract_receipt_data"), {
+            "ocr_text": "Monto: $ 1.234,56\nDestinatario: Comercio\nFecha: 12/11/2026",
         })
-        self.client.post("/comprobantes/subir/", {"receipt": image_upload()})
-        movement = Movement.objects.get()
-        self.assertEqual(movement.amount, Decimal("1234.56"))
-        self.assertEqual(movement.extracted_data["amount"], "1234.56")
-        self.assertEqual(movement.status, "pending")
-        response = self.client.post(reverse("edit", args=[movement.pk]), self.valid_data(amount="1250.00"))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Movement.objects.exists())
+        response = self.client.post(
+            reverse("new"), self.valid_data(amount="1234.56", recipient="Comercio")
+        )
         self.assertRedirects(response, "/")
-        movement.refresh_from_db()
-        self.assertEqual(movement.amount, Decimal("1250"))
-        self.assertEqual(movement.extracted_data["amount"], "1234.56")
+        self.assertTrue(Movement.objects.filter(
+            amount=Decimal("1234.56"), recipient="Comercio"
+        ).exists())
 
     def test_possible_duplicates_are_visible_but_not_removed(self):
         self.movement(operation_id="SAME")
@@ -292,27 +270,6 @@ class PaymentsTests(TestCase):
         response = self.client.get(reverse("edit", args=[duplicate.pk]))
         self.assertContains(response, "posibles duplicados")
         self.assertEqual(Movement.objects.count(), 2)
-
-    def test_invalid_image_is_rejected(self):
-        form = UploadForm(files={"receipt": SimpleUploadedFile(
-            "malicioso.png", b"<script>bad</script>", content_type="image/png"
-        )})
-        self.assertFalse(form.is_valid())
-        self.assertIn("receipt", form.errors)
-
-    def test_image_extension_comes_from_validated_content(self):
-        image = image_upload()
-        image.name = "fake.html"
-        form = UploadForm(files={"receipt": image})
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["receipt"].name, "comprobante.png")
-
-    def test_oversize_upload_is_rejected(self):
-        file = image_upload()
-        file.size = MAX_RECEIPT_BYTES + 1
-        form = UploadForm(files={"receipt": file})
-        self.assertFalse(form.is_valid())
-        self.assertIn("8 MB", str(form.errors))
 
     def test_excel_strings_are_not_formulas(self):
         self.movement(recipient="=HYPERLINK(\"bad\")", description="+SUM(1,1)")
@@ -336,7 +293,7 @@ class PaymentsTests(TestCase):
 
     def test_household_dashboard_keeps_actions_without_marketing_help(self):
         response = self.client.get("/demo/")
-        for text in ("Mis pagos", "Leer comprobante", "Cargar a mano", "Filtros", "Excel"):
+        for text in ("Mis pagos", "Cargar comprobante", "Cargar a mano", "Filtros", "Excel"):
             self.assertContains(response, text)
         for text in ("Tu yo de fin de mes", "Que cada movimiento tenga una historia", "DEL COMPROBANTE AL REGISTRO"):
             self.assertNotContains(response, text)
@@ -346,9 +303,12 @@ class PaymentsTests(TestCase):
         response = self.client.get("/nuevo/")
         html = response.content.decode()
         self.assertLess(html.index('class="upload-form"'), html.index('id="manual"'))
-        self.assertContains(response, 'enctype="multipart/form-data"')
-        self.assertContains(response, "La imagen se lee en este dispositivo y no se guarda.")
-        self.assertNotContains(response, 'name="skip_ocr"')
+        self.assertContains(response, 'action="/comprobantes/extraer-datos/"')
+        self.assertContains(response, 'data-upload-label>Cargar comprobante</span>')
+        self.assertContains(response, 'data-upload-spinner')
+        self.assertNotContains(response, 'name="receipt"')
+        self.assertContains(response, "Esto completa el formulario, pero no guarda el pago.")
+        self.assertContains(response, "no se envía ni se guarda")
         self.assertContains(response, 'name="action" value="pending"')
         self.assertContains(response, 'name="action" value="confirm"')
         self.assertContains(response, 'aria-label="Cerrar sesión"')
@@ -426,12 +386,18 @@ class PaymentsTests(TestCase):
         self.client.post(url)
         extract.assert_not_called()
 
-    @patch("registro.views.extract_receipt")
-    def test_upload_does_not_guess_between_two_accounts_at_same_bank(self, extract):
+    def test_receipt_extraction_does_not_guess_between_two_accounts_at_same_bank(self):
         Account.objects.create(owner=self.user, name="Otra MP", bank="mp")
-        extract.return_value = ("Monto: $ 100", {"amount": "100", "source_bank": "mp"})
-        self.client.post("/comprobantes/subir/", {"receipt": image_upload()})
-        self.assertIsNone(Movement.objects.get().account_id)
+        response = self.client.post(reverse("extract_receipt_data"), {
+            "ocr_text": (
+                "Mercado Pago\nComprobante de transferencia\n"
+                "Origen y destino\nAna Ejemplo\nMercado Pago\nCVU: 123\n"
+                "CUIT/CUIL: 20-00000000-1\n"
+                "Jorge Ejemplo\nBanco ejemplo\nCBU: 456\nCUIT/CUIL: 20-00000000-2"
+            ),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("account", response.json()["data"])
 
 
 class ExtractionTests(TestCase):

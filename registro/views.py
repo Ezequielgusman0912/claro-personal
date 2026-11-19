@@ -9,7 +9,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -19,7 +19,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 
 from .demo import sample_data
-from .forms import AccountForm, MovementForm, UploadForm
+from .forms import AccountForm, MovementForm, ReceiptTextForm
 from .models import Account, Movement
 from .ocr import ExtractionError, extract_receipt, parse_receipt
 
@@ -142,7 +142,6 @@ def dashboard(request):
     accounts = list(Account.objects.filter(owner=request.user))
     rows = Movement.objects.filter(owner=request.user).select_related("account", "destination_account")
     context = filtered_context(request, accounts, rows)
-    context["upload_form"] = UploadForm()
     return render(request, "registro/dashboard.html", context)
 
 
@@ -188,49 +187,30 @@ def new_movement(request):
         movement = form.save()
         messages.success(request, "Movimiento confirmado." if movement.status == "confirmed" else "Guardado para completar despues.")
         return redirect("dashboard")
-    return render(request, "registro/form.html", {
-        "form": form, "upload_form": UploadForm(),
-    })
+    return render(request, "registro/form.html", {"form": form})
 
 
 @never_cache
 @login_required
 @require_POST
-def upload_receipt(request):
-    form = UploadForm(request.POST, request.FILES)
+def extract_receipt_data(request):
+    form = ReceiptTextForm(request.POST)
     if not form.is_valid():
-        return render(request, "registro/form.html", {
-            "form": MovementForm(user=request.user), "upload_form": form,
-        }, status=400)
-    file = form.cleaned_data["receipt"]
-    text = form.cleaned_data["ocr_text"].strip()
-    extracted = {}
-    extraction_failed = False
-    if text:
-        extracted = parse_receipt(text)
-    else:
-        try:
-            text, extracted = extract_receipt(file)
-        except ExtractionError as exc:
-            logger.warning("Receipt extraction unavailable: %s", exc)
-            messages.warning(request, str(exc))
-            extraction_failed = True
-    if text and extracted:
-        messages.info(
-            request,
-            "Lectura terminada. Revisa los datos antes de confirmar."
-        )
-    elif text:
-        messages.info(request, "No encontramos datos reconocibles. Completa los campos manualmente.")
-    elif not extraction_failed:
-        messages.info(request, "La imagen no se guardo. Completa los campos manualmente.")
-    movement = Movement(
-        owner=request.user, extracted_data=extracted,
-    )
-    apply_extraction(movement, extracted)
-    with transaction.atomic():
-        movement.save(force_insert=True)
-    return redirect("edit", pk=movement.pk)
+        return JsonResponse({"error": "No se pudo leer el comprobante. Elegí otra imagen."}, status=400)
+
+    extracted = parse_receipt(form.cleaned_data["ocr_text"])
+    data = {
+        key: extracted[key]
+        for key in ("amount", "date", "recipient", "operation_id", "currency")
+        if key in extracted
+    }
+    if extracted.get("source_bank"):
+        matches = list(Account.objects.filter(
+            owner=request.user, bank=extracted["source_bank"]
+        ).values_list("pk", flat=True)[:2])
+        if len(matches) == 1:
+            data["account"] = str(matches[0])
+    return JsonResponse({"data": data})
 
 
 @never_cache

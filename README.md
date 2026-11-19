@@ -101,9 +101,13 @@ Esto no certifica precision en otros formatos ni en comprobantes de Galicia.
 
 Para Vercel, el formulario prepara OCR en el navegador con assets propios
 versionados de Tesseract.js, Tesseract core y el modelo `spa` compacto.
-En la lectura normal del navegador, la imagen permanece en el dispositivo y no se
-adjunta al envio. Solo se transmite el texto detectado para extraer los campos;
-el texto completo no se conserva. La alternativa OCR local del servidor puede
+En la lectura normal del navegador, la imagen permanece en el dispositivo y nunca
+se envia al servidor. Solo se transmite temporalmente el texto detectado para
+extraer propuestas de campos; el texto completo no se conserva. Las propuestas
+completan el formulario y no crean ni guardan un movimiento. El usuario debe
+revisarlas y elegir explicitamente **Guardar pendiente** o **Confirmar**. Si la
+imagen no se puede leer o no se reconocen datos, la app avisa y permite elegir
+otro comprobante sin salir de la pantalla. La alternativa OCR local del servidor puede
 recibir temporalmente la imagen, pero no la almacena.
 El primer uso descarga y almacena en cache del navegador aproximadamente 6 MB de
 lector y datos. Si el dispositivo no puede leer la imagen, ofrece completar los
