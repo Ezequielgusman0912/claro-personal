@@ -110,6 +110,8 @@ class PaymentsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, '<aside class="sidebar">')
         self.assertContains(response, 'class="app app-login"')
+        self.assertContains(response, "<title>Cuentas Claras · Tus pagos, en orden</title>")
+        self.assertContains(response, "Cuentas Claras")
         self.assertContains(response, "Ingresar")
 
     def test_other_user_cannot_read_or_edit_movement(self):

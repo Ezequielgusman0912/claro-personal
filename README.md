@@ -1,4 +1,4 @@
-# Claro - registro personal de pagos
+# Cuentas Claras - registro personal de pagos
 
 Aplicacion Django independiente de la gestion comercial del repositorio.
 No importa sus modelos, no usa su base ni sus usuarios y no modifica sus calculos.
@@ -123,7 +123,7 @@ Las librerias y los datos OCR no se guardan en Git. Se conserva la atribucion
 Apache-2.0 y MIT en los avisos del paquete generado.
 
 La lectura inicial solo completa campos vacios y no confirma el movimiento.
-Como la imagen no se almacena, no se puede volver a leer desde Claro: si hace falta,
+Como la imagen no se almacena, no se puede volver a leer desde Cuentas Claras: si hace falta,
 se debe seleccionar otra vez desde la aplicacion del banco o el celular.
 La cuenta se sugiere solamente cuando la entidad de origen es reconocible y existe
 una unica cuenta propia de esa entidad. Nunca se crean cuentas automaticamente.

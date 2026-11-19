@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
-  <title>{% block title %}Claro · Tus pagos, en orden{% endblock %}</title>
+  <title>{% block title %}Cuentas Claras · Tus pagos, en orden{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'registro/app.css' %}">
   <script defer src="{% static 'registro/app.js' %}"></script>
 </head>
@@ -29,7 +29,7 @@
 <a class="skip-link" href="#main">Ir al contenido</a>
 {% if user.is_authenticated or is_demo %}
 <aside class="sidebar">
-  <a class="brand" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}" aria-label="Claro, inicio"><span class="brand-mark">c</span>claro<span class="brand-dot">.</span></a>
+  <a class="brand" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}" aria-label="Cuentas Claras, inicio"><span class="brand-mark">C</span><span>Cuentas Claras</span></a>
   <nav aria-label="Principal">
     <a class="nav-item {% if not request.GET.status and not request.GET.screen and request.resolver_match.url_name == 'demo' or request.resolver_match.url_name == 'dashboard' and not request.GET.status %}active{% endif %}" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}"><svg><use href="#i-grid"/></svg>Resumen</a>
     <a class="nav-item" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}#movimientos"><svg><use href="#i-arrows"/></svg>Movimientos</a>
@@ -39,7 +39,7 @@
 </aside>
 {% endif %}
 <div class="app{% if not user.is_authenticated and not is_demo %} app-login{% endif %}">
-  <header class="topbar"><a class="mobile-brand" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}">claro.</a><div class="breadcrumb">{% block breadcrumb %}Mis pagos{% endblock %}</div><div class="topbar-right">{% if is_demo %}<a class="text-link" href="{% url 'login' %}">Ingresar</a>{% elif user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button subtle compact" type="submit" aria-label="Cerrar sesión">Salir</button></form>{% endif %}</div></header>
+  <header class="topbar"><a class="mobile-brand" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}">Cuentas Claras</a><div class="breadcrumb">{% block breadcrumb %}Mis pagos{% endblock %}</div><div class="topbar-right">{% if is_demo %}<a class="text-link" href="{% url 'login' %}">Ingresar</a>{% elif user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button subtle compact" type="submit" aria-label="Cerrar sesión">Salir</button></form>{% endif %}</div></header>
   <main id="main">
     {% if is_demo %}<div class="demo-notice">Demo · Datos ficticios, sin guardar cambios.</div>{% endif %}
     {% for message in messages %}<div role="status" class="message {{ message.tags }}">{{ message }}</div>{% endfor %}
