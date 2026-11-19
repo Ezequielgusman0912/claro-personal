@@ -41,6 +41,23 @@ Ingresar en `/ingresar/`, crear las cuentas en **Mis cuentas** y registrar pagos
 No se incluye un usuario ni una contrasena predeterminados.
 SQLite, los comprobantes locales y el entorno virtual estan ignorados por Git.
 
+## Preparar Neon y crear el primer usuario
+
+1. En Neon, abre **Connect**, selecciona la rama `production` y desactiva
+   **Connection pooling** para copiar la conexion directa. No la compartas por chat.
+2. Desde esta carpeta, en PowerShell, ejecuta:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-neon.ps1
+   ```
+
+3. Pega la conexion cuando se solicite; la entrada esta oculta. El comando aplica
+   las migraciones para crear las tablas y luego pide un usuario y contrasena.
+   Django no muestra la contrasena mientras se escribe. La URL solo se usa durante
+   el proceso y se elimina del entorno al terminar.
+4. En Vercel, `PAGOS_DATABASE_URL` debe conservar la conexion **pooled**, solo en
+   Production. No reemplaces esa variable con la conexion directa de este paso.
+
 ## Incluido
 
 - Registro manual y lectura de imagenes JPG, PNG y WebP, hasta 8 MB.
