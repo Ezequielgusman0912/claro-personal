@@ -1,0 +1,13 @@
+{
+  "name": "claro-personal-ocr-assets",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build:ocr": "node scripts/copy-ocr-assets.mjs"
+  },
+  "dependencies": {
+    "@tesseract.js-data/spa": "1.0.0",
+    "tesseract.js": "6.0.1",
+    "tesseract.js-core": "6.0.0"
+  }
+}

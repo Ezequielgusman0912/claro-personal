@@ -1,0 +1,11 @@
+{% extends "registro/base.html" %}
+{% block breadcrumb %}Mis cuentas{% endblock %}
+{% block content %}
+<section class="page-heading"><h1>Mis cuentas</h1></section>
+<div class="accounts-layout">
+  <section class="panel form-panel">
+    {% for account in accounts %}<div class="account-row"><span class="account-logo {{ account.bank }}">{% if account.bank == "mp" %}mp{% elif account.bank == "galicia" %}G{% else %}<svg><use href="#i-wallet"/></svg>{% endif %}</span><div><strong>{{ account.name }}</strong><small>{{ account.get_bank_display }}</small></div></div>{% empty %}<p class="muted">Todavía no agregaste cuentas.</p>{% endfor %}
+  </section>
+  <section class="panel form-panel"><h2>Agregar cuenta</h2>{% if is_demo %}<a class="button primary" href="{% url 'login' %}">Ingresar</a>{% else %}<form method="post">{% csrf_token %}{{ form.as_p }}<button class="button primary" type="submit"><svg><use href="#i-plus"/></svg>Agregar</button></form>{% endif %}</section>
+</div>
+{% endblock %}

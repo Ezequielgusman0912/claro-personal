@@ -1,0 +1,46 @@
+{% extends "registro/base.html" %}
+{% load static %}
+{% block breadcrumb %}{% if movement %}Revisar pago{% else %}Nuevo pago{% endif %}{% endblock %}
+{% block content %}
+<section class="page-heading"><h1>{% if movement %}Revisar pago{% else %}Nuevo pago{% endif %}</h1><a class="button subtle" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}">Volver</a></section>
+{% if is_demo %}<div class="message info">Solo lectura. <a href="{% url 'login' %}">Ingresar para guardar pagos.</a></div>{% endif %}
+<div class="form-layout">
+  <aside class="form-aside">
+    {% if movement.receipt %}
+      <details class="panel receipt-panel"><summary>Ver comprobante</summary><a href="{% url 'receipt' movement.pk %}" target="_blank" rel="noopener"><img class="receipt-preview" src="{% url 'receipt' movement.pk %}" alt="Comprobante del pago"></a></details>
+      {% if movement.status == "pending" %}
+      <form method="post" action="{% url 'retry_extraction' movement.pk %}" class="upload-form">{% csrf_token %}<button class="button subtle full" type="submit" data-upload-button><svg><use href="#i-file"/></svg>Leer comprobante</button><small>Guardá tus cambios antes de volver a leer.</small></form>
+      {% endif %}
+      {% if movement.extracted_text %}<details class="panel extracted"><summary>Texto detectado</summary><pre>{{ movement.extracted_text }}</pre></details>{% endif %}
+    {% elif not is_demo %}
+      <section class="panel form-panel upload-panel"><h2>Leer comprobante</h2><form method="post" action="{% url 'upload' %}" enctype="multipart/form-data" class="upload-form" data-worker-url="{% static 'registro/vendor/ocr/worker.min.js' %}" data-core-url="{% static 'registro/vendor/ocr/tesseract-core-simd-lstm.wasm.js' %}" data-language-url="{% static 'registro/vendor/ocr/lang/' %}" data-library-url="{% static 'registro/vendor/ocr/tesseract.min.js' %}">{% csrf_token %}{{ upload_form.as_p }}<button class="button primary full" type="submit" data-upload-button><svg><use href="#i-up"/></svg>Leer y guardar datos</button><p class="ocr-status" role="status" aria-live="polite"></p><a class="button subtle full" href="#manual" data-manual-entry hidden>Cargar los datos a mano</a><small>La imagen se lee en este dispositivo y no se guarda. JPG, PNG o WebP · hasta 8 MB</small></form></section>
+    {% endif %}
+    {% if not is_demo %}<a class="text-link account-link" href="{% url 'accounts' %}">Agregar cuenta</a>{% endif %}
+  </aside>
+  <section class="panel form-panel" id="manual">
+    <h2>{% if movement %}Datos del pago{% else %}Carga manual{% endif %}</h2>
+    {% if movement.extracted_data %}<div class="message info">Revisá los datos leídos antes de confirmar, incluida la moneda.</div>{% endif %}
+    {% if duplicates %}<div class="message warning">Encontramos posibles duplicados:<ul>{% for duplicate in duplicates %}<li><a href="{% url 'edit' duplicate.pk %}">{{ duplicate.recipient }} · {{ duplicate.amount }} · {{ duplicate.date }}</a></li>{% endfor %}</ul></div>{% endif %}
+    <form method="post" {% if is_demo %}action="{% url 'login' %}"{% endif %}>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <fieldset {% if is_demo %}disabled{% endif %} class="movement-fields">
+      {% for field in form %}
+        {% if field.name != "operation_id" and field.name != "notes" %}
+        <div class="form-field {% if field.name == 'description' %}span-two{% endif %}" {% if field.name == 'destination_account' %}data-destination{% endif %}>
+          <label for="{{ field.id_for_label }}">{% if field.name == "account" %}Cuenta{% else %}{{ field.label|capfirst }}{% endif %}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+        {% endif %}
+      {% endfor %}
+      </fieldset>
+      <details class="optional-fields" {% if form.operation_id.errors or form.notes.errors %}open{% endif %}><summary>Más detalles</summary><fieldset {% if is_demo %}disabled{% endif %} class="movement-fields">
+        <div class="form-field span-two">{{ form.operation_id.label_tag }}{{ form.operation_id }}{{ form.operation_id.errors }}</div>
+        <div class="form-field span-two">{{ form.notes.label_tag }}{{ form.notes }}{{ form.notes.errors }}</div>
+      </fieldset></details>
+      <div class="form-actions">{% if is_demo %}<a class="button primary" href="{% url 'login' %}">Ingresar</a>{% else %}<button class="button subtle" name="action" value="pending">Guardar pendiente</button><button class="button primary" name="action" value="confirm"><svg><use href="#i-check"/></svg>Confirmar</button>{% endif %}</div>
+    </form>
+  </section>
+</div>
+{% endblock %}

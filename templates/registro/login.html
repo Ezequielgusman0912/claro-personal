@@ -1,0 +1,5 @@
+{% extends "registro/base.html" %}
+{% block breadcrumb %}Ingresar{% endblock %}
+{% block content %}
+<section class="panel form-panel login-panel"><h1>Ingresar</h1><form method="post">{% csrf_token %}{{ form.as_p }}<input type="hidden" name="next" value="{{ next }}"><button class="button primary full" type="submit">Ingresar</button></form><a class="text-link demo-link" href="{% url 'demo' %}">Ver demo</a></section>
+{% endblock %}

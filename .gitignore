@@ -1,0 +1,7 @@
+.env
+.venv/
+node_modules/
+db.sqlite3
+private_media/
+staticfiles/
+/static/registro/vendor/ocr/

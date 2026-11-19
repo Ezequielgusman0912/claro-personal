@@ -1,0 +1,15 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("", views.dashboard, name="dashboard"),
+    path("demo/", views.demo, name="demo"),
+    path("nuevo/", views.new_movement, name="new"),
+    path("comprobantes/subir/", views.upload_receipt, name="upload"),
+    path("movimientos/<int:pk>/", views.edit_movement, name="edit"),
+    path("movimientos/<int:pk>/comprobante/", views.receipt, name="receipt"),
+    path("movimientos/<int:pk>/leer/", views.retry_extraction, name="retry_extraction"),
+    path("cuentas/", views.accounts, name="accounts"),
+    path("exportar/", views.export, name="export"),
+]
