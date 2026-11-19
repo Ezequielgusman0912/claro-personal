@@ -1,0 +1,21 @@
+{% extends "registro/base.html" %}
+{% block breadcrumb %}Eliminar pago{% endblock %}
+{% block content %}
+<section class="page-heading"><h1>Eliminar pago</h1><a class="button subtle" href="{% url 'edit' movement.pk %}">Volver</a></section>
+<section class="panel form-panel delete-confirm">
+  <h2>¿Querés eliminar este pago?</h2>
+  <p>Se eliminará permanentemente y no se puede recuperar.</p>
+  <dl>
+    <dt>Destinatario / comercio</dt><dd>{{ movement.recipient|default:"Sin destinatario" }}</dd>
+    <dt>Importe</dt><dd>{% if movement.amount is not None %}{{ movement.currency }} {{ movement.amount }}{% else %}Sin importe{% endif %}</dd>
+    <dt>Fecha</dt><dd>{{ movement.date|date:"d/m/Y"|default:"Sin fecha" }}</dd>
+  </dl>
+  <div class="delete-actions">
+    <a class="button subtle" href="{% url 'edit' movement.pk %}">Cancelar y conservar</a>
+    <form method="post" action="{% url 'delete_movement' movement.pk %}">
+      {% csrf_token %}
+      <button class="button danger" type="submit">Sí, eliminar pago</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

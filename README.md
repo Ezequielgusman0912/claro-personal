@@ -51,7 +51,7 @@ SQLite, los comprobantes locales y el entorno virtual estan ignorados por Git.
    powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-neon.ps1
    ```
 
-3. Pega la conexion cuando se solicite; la entrada esta oculta. El comando aplica
+3. Pega la conexion cuando se solicite; sera visible en la terminal local. El comando aplica
    las migraciones para crear las tablas y luego pide un usuario y contrasena.
    Django no muestra la contrasena mientras se escribe. La URL solo se usa durante
    el proceso y se elimina del entorno al terminar.
@@ -109,6 +109,9 @@ revisarlas y elegir explicitamente **Guardar pendiente** o **Confirmar**. Si la
 imagen no se puede leer o no se reconocen datos, la app avisa y permite elegir
 otro comprobante sin salir de la pantalla. La alternativa OCR local del servidor puede
 recibir temporalmente la imagen, pero no la almacena.
+Despues de una lectura exitosa, el comprobante queda bloqueado en ese formulario:
+para usar otro, inicia un nuevo pago. Los pagos existentes pueden eliminarse
+desde su ficha; la aplicacion pide confirmacion antes del borrado permanente.
 El primer uso descarga y almacena en cache del navegador aproximadamente 6 MB de
 lector y datos. Si el dispositivo no puede leer la imagen, ofrece completar los
 datos a mano. El OCR del servidor queda como alternativa local y tampoco almacena

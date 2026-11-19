@@ -43,10 +43,18 @@
   }
 
   function setBusy(busy) {
-    button.disabled = busy;
+    const complete = upload.dataset.ocrComplete === "true";
+    button.disabled = busy || complete;
+    fileField.disabled = busy || complete;
     spinner.hidden = !busy;
     upload.setAttribute("aria-busy", String(busy));
-    buttonLabel.textContent = busy ? "Cargando datos…" : fileField.files.length ? "Cargar datos" : "Cargar comprobante";
+    buttonLabel.textContent = busy
+      ? "Cargando datos…"
+      : complete
+        ? "Comprobante leído"
+        : fileField.files.length
+          ? "Cargar datos"
+          : "Cargar comprobante";
   }
 
   fileField.addEventListener("change", () => {
@@ -148,8 +156,9 @@
         : "La lectura encontró datos, pero tus campos ya estaban completos. Revisalos; todavía no se guardó el pago.";
       resultMessage.hidden = false;
       manualLink.hidden = true;
+      upload.dataset.ocrComplete = "true";
       document.querySelector("#manual").scrollIntoView({ behavior: "smooth", block: "start" });
-      status.textContent = "Datos cargados en el formulario; todavía no se guardaron.";
+      status.textContent = "Datos cargados en el formulario; todavía no se guardaron. Para usar otro comprobante, iniciá un nuevo pago.";
     } catch (error) {
       console.error("Receipt OCR failed:", error);
       const message = error.message || "No pudimos leer esta imagen.";

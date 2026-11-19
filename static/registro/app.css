@@ -47,6 +47,8 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .primary:hover { background: #195b48; }
 .subtle { background: white; border-color: #dce3e7; color: #465567; }
 .subtle:hover { background: #f0f4f2; }
+.danger { background: #963c3c; color: white; }
+.danger:hover { background: #7d3030; }
 .compact { font-size: 13px; padding: 8px 12px; }
 .full { width: 100%; }
 .muted { color: var(--muted); line-height: 1.6; }
@@ -138,6 +140,12 @@ small { line-height: 1.6; }
 .form-field { min-width: 0; }
 .span-two { grid-column: span 2; }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line); }
+.delete-form { display: flex; justify-content: flex-end; margin-top: 16px; }
+.delete-confirm { max-width: 620px; }
+.delete-confirm dl { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; gap: 10px 16px; margin: 24px 0; }
+.delete-confirm dt { color: var(--muted); }
+.delete-confirm dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.delete-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line); }
 .optional-fields { margin-bottom: 10px; }
 .receipt-panel, .extracted { padding: 4px 18px; }
 .receipt-preview { width: 100%; max-height: 550px; object-fit: contain; background: #f8f9fa; margin-bottom: 14px; }

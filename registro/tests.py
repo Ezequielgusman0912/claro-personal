@@ -116,10 +116,39 @@ class PaymentsTests(TestCase):
         movement = self.movement(owner=self.other, account=self.other_account)
         self.assertEqual(self.client.get(reverse("edit", args=[movement.pk])).status_code, 404)
         self.assertEqual(self.client.post(reverse("edit", args=[movement.pk]), self.valid_data()).status_code, 404)
+        self.assertEqual(self.client.get(reverse("delete_movement", args=[movement.pk])).status_code, 404)
+        self.assertEqual(self.client.post(reverse("delete_movement", args=[movement.pk])).status_code, 404)
         self.assertEqual(self.client.get(reverse("receipt", args=[movement.pk])).status_code, 404)
         self.assertEqual(self.client.get("/").context["total_count"], 0)
         sheet = load_workbook(BytesIO(self.client.get("/exportar/").content)).active
         self.assertEqual(sheet.max_row, 1)
+
+    def test_delete_movement_requires_confirmation_and_removes_record_and_receipt(self):
+        movement = self.movement(status="pending", receipt=image_upload())
+        receipt_path = Path(movement.receipt.path)
+        self.assertTrue(receipt_path.exists())
+
+        confirmation = self.client.get(reverse("delete_movement", args=[movement.pk]))
+        self.assertEqual(confirmation.status_code, 200)
+        self.assertContains(confirmation, "¿Querés eliminar este pago?")
+        self.assertContains(confirmation, "Sí, eliminar pago")
+        self.assertTrue(Movement.objects.filter(pk=movement.pk).exists())
+        self.assertTrue(receipt_path.exists())
+
+        response = self.client.post(
+            reverse("delete_movement", args=[movement.pk]), follow=True
+        )
+        self.assertEqual(response.redirect_chain, [(reverse("dashboard"), 302)])
+        self.assertContains(response, "El pago se eliminó.")
+        self.assertFalse(Movement.objects.filter(pk=movement.pk).exists())
+        self.assertFalse(receipt_path.exists())
+
+    def test_anonymous_cannot_delete_movement(self):
+        movement = self.movement()
+        self.client.logout()
+        response = self.client.post(reverse("delete_movement", args=[movement.pk]))
+        self.assertRedirects(response, f"/ingresar/?next=/movimientos/{movement.pk}/eliminar/")
+        self.assertTrue(Movement.objects.filter(pk=movement.pk).exists())
 
     def test_confirm_new_movement(self):
         response = self.client.post("/nuevo/", self.valid_data())
@@ -289,7 +318,9 @@ class PaymentsTests(TestCase):
     def test_new_and_existing_forms_render(self):
         self.assertEqual(self.client.get("/nuevo/").status_code, 200)
         movement = self.movement()
-        self.assertEqual(self.client.get(reverse("edit", args=[movement.pk])).status_code, 200)
+        response = self.client.get(reverse("edit", args=[movement.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Eliminar pago")
 
     def test_household_dashboard_keeps_actions_without_marketing_help(self):
         response = self.client.get("/demo/")

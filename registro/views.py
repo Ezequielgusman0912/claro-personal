@@ -279,6 +279,30 @@ def edit_movement(request, pk):
 
 @never_cache
 @login_required
+@require_http_methods(["GET", "POST"])
+def delete_movement(request, pk):
+    movement = get_object_or_404(Movement, pk=pk, owner=request.user)
+    if request.method == "GET":
+        return render(request, "registro/delete_confirm.html", {"movement": movement})
+
+    receipt = movement.receipt
+    movement.delete()
+    try:
+        if receipt:
+            receipt.delete(save=False)
+    except OSError:
+        logger.exception("Could not delete receipt for movement %s", pk)
+        messages.warning(
+            request,
+            "El pago se eliminó, pero no se pudo borrar el archivo de su comprobante.",
+        )
+    else:
+        messages.success(request, "El pago se eliminó.")
+    return redirect("dashboard")
+
+
+@never_cache
+@login_required
 def receipt(request, pk):
     movement = get_object_or_404(Movement, pk=pk, owner=request.user)
     if not movement.receipt:

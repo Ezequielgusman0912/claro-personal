@@ -42,6 +42,7 @@
       </fieldset></details>
       <div class="form-actions">{% if is_demo %}<a class="button primary" href="{% url 'login' %}">Ingresar</a>{% else %}<button class="button subtle" name="action" value="pending">Guardar pendiente</button><button class="button primary" name="action" value="confirm"><svg><use href="#i-check"/></svg>Confirmar</button>{% endif %}</div>
     </form>
+    {% if movement and not is_demo %}<form method="get" action="{% url 'delete_movement' movement.pk %}" class="delete-form"><button class="button danger" type="submit">Eliminar pago</button></form>{% endif %}
   </section>
 </div>
 {% endblock %}
