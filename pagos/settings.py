@@ -14,12 +14,26 @@ if not SECRET_KEY:
     if not DEBUG:
         raise ImproperlyConfigured("SECRET_KEY es obligatoria en produccion.")
     SECRET_KEY = "local-development-only-personal-payments"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-CSRF_TRUSTED_ORIGINS = [
+ALLOWED_HOSTS = list(dict.fromkeys(
     value.strip()
-    for value in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    for value in (
+        "localhost",
+        "127.0.0.1",
+        "claro-personal.vercel.app",
+        "cuentas-claras-gusman-app.vercel.app",
+        *os.getenv("ALLOWED_HOSTS", "").split(","),
+    )
     if value.strip()
-]
+))
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(
+    value.strip()
+    for value in (
+        "https://claro-personal.vercel.app",
+        "https://cuentas-claras-gusman-app.vercel.app",
+        *os.getenv("CSRF_TRUSTED_ORIGINS", "").split(","),
+    )
+    if value.strip()
+))
 
 INSTALLED_APPS = [
     "django.contrib.auth",
