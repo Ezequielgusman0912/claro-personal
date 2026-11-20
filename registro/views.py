@@ -161,12 +161,15 @@ def demo(request):
     screen = request.GET.get("screen")
     if screen == "accounts":
         return render(request, "registro/accounts.html", context)
-    if screen == "new" or request.GET.get("detail"):
+    if request.GET.get("detail"):
+        instance = next((row for row in rows if str(row.pk) == request.GET["detail"]), None)
+        if instance is None:
+            raise Http404
+        return render(request, "registro/detail.html", {
+            **context, "movement": instance,
+        })
+    if screen == "new":
         instance = None
-        if request.GET.get("detail"):
-            instance = next((row for row in rows if str(row.pk) == request.GET["detail"]), None)
-            if instance is None:
-                raise Http404
         form = MovementForm(instance=instance, user=None)
         for name in ("account", "destination_account"):
             form.fields[name] = forms.ChoiceField(
@@ -254,6 +257,17 @@ def retry_extraction(request, pk):
 
 @never_cache
 @login_required
+@require_GET
+def movement_detail(request, pk):
+    movement = get_object_or_404(
+        Movement.objects.select_related("account", "destination_account"),
+        pk=pk, owner=request.user,
+    )
+    return render(request, "registro/detail.html", {"movement": movement})
+
+
+@never_cache
+@login_required
 @require_http_methods(["GET", "POST"])
 def edit_movement(request, pk):
     movement = get_object_or_404(Movement, pk=pk, owner=request.user)
@@ -264,7 +278,7 @@ def edit_movement(request, pk):
     if request.method == "POST" and form.is_valid():
         movement = form.save()
         messages.success(request, "Movimiento confirmado." if movement.status == "confirmed" else "Cambios guardados como pendiente.")
-        return redirect("dashboard")
+        return redirect("movement_detail", pk=movement.pk)
     duplicates = Movement.objects.filter(owner=request.user).exclude(pk=pk)
     if movement.operation_id:
         duplicates = duplicates.filter(

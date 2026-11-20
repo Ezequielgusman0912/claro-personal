@@ -71,6 +71,20 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
   .pending-stat:hover { background: #f8f0df; }
 }
 .panel { background: white; border: 1px solid var(--line); border-radius: 9px; min-width: 0; }
+.movement-detail { max-width: 760px; margin-inline: auto; padding: 20px; }
+.detail-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.detail-heading > div { min-width: 0; }
+.detail-heading h2 { margin-top: 5px; overflow-wrap: anywhere; }
+.detail-heading .status { flex-shrink: 0; }
+.detail-amount { font-size: clamp(24px, 5vw, 34px); font-weight: 650; margin-block: 16px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.detail-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.detail-fields dt { color: var(--muted); font-size: 12px; }
+.detail-fields dd { margin: 4px 0 0; overflow-wrap: anywhere; line-height: 1.4; }
+.detail-wide { grid-column: 1 / -1; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.detail-extra { border-top: 1px solid var(--line); margin-top: 16px; }
+.detail-delete { margin-top: 16px; }
+.detail-delete a { display: inline-flex; align-items: center; min-height: 44px; color: #963c3c; }
 .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; }
 .count { font-size: 12px; padding: 3px 6px; background: #f0f2f4; color: var(--muted); border-radius: 4px; margin-left: 5px; vertical-align: middle; }
 .filters { padding: 0 20px 16px; }

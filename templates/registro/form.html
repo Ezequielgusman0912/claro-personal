@@ -1,8 +1,8 @@
 {% extends "registro/base.html" %}
 {% load static %}
-{% block breadcrumb %}{% if movement %}Revisar pago{% else %}Nuevo pago{% endif %}{% endblock %}
+{% block breadcrumb %}{% if movement %}Editar pago{% else %}Nuevo pago{% endif %}{% endblock %}
 {% block content %}
-<section class="page-heading"><h1>{% if movement %}Revisar pago{% else %}Nuevo pago{% endif %}</h1><a class="button subtle" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}">Volver</a></section>
+<section class="page-heading"><h1>{% if movement %}Editar pago{% else %}Nuevo pago{% endif %}</h1><a class="button subtle" href="{% if is_demo %}{% url 'demo' %}{% elif movement %}{% url 'movement_detail' movement.pk %}{% else %}{% url 'dashboard' %}{% endif %}">Volver</a></section>
 {% if is_demo %}<div class="message info">Solo lectura. <a href="{% url 'login' %}">Ingresar para guardar pagos.</a></div>{% endif %}
 <div class="form-layout">
   <aside class="form-aside">
@@ -21,7 +21,7 @@
     <h2>{% if movement %}Datos del pago{% else %}Carga manual{% endif %}</h2>
     <p class="message info" data-ocr-result role="status" aria-live="polite" hidden></p>
     {% if movement.extracted_data %}<div class="message info">Revisá los datos leídos antes de confirmar, incluida la moneda.</div>{% endif %}
-    {% if duplicates %}<div class="message warning">Encontramos posibles duplicados:<ul>{% for duplicate in duplicates %}<li><a href="{% url 'edit' duplicate.pk %}">{{ duplicate.recipient }} · {{ duplicate.amount }} · {{ duplicate.date }}</a></li>{% endfor %}</ul></div>{% endif %}
+    {% if duplicates %}<div class="message warning">Encontramos posibles duplicados:<ul>{% for duplicate in duplicates %}<li><a href="{% url 'movement_detail' duplicate.pk %}">{{ duplicate.recipient }} · {{ duplicate.amount }} · {{ duplicate.date }}</a></li>{% endfor %}</ul></div>{% endif %}
     <form method="post" {% if is_demo %}action="{% url 'login' %}"{% endif %}>
       {% csrf_token %}
       {{ form.non_field_errors }}

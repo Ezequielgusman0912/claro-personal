@@ -1,0 +1,34 @@
+{% extends "registro/base.html" %}
+{% block breadcrumb %}Detalle del movimiento{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <h1>Detalle del movimiento</h1>
+  <a class="button subtle" href="{% if is_demo %}{% url 'demo' %}?screen=movements{% else %}{% url 'movements' %}{% endif %}">Volver</a>
+</section>
+{% if is_demo %}<div class="message info">Solo lectura · Datos ficticios.</div>{% endif %}
+<article class="panel movement-detail">
+  <header class="detail-heading">
+    <div><span class="muted">{{ movement.get_kind_display }}</span><h2>{{ movement.recipient|default:"Sin destinatario" }}</h2></div>
+    <span class="status {{ movement.status }}">{% if movement.status == "confirmed" %}<svg><use href="#i-check"/></svg>Confirmado{% else %}Pendiente{% endif %}</span>
+  </header>
+  <div class="detail-amount">{% if movement.amount != None %}{% if movement.kind == "income" %}+{% endif %}{{ movement.currency }} {{ movement.amount|floatformat:"2g" }}{% else %}Sin importe{% endif %}</div>
+  <dl class="detail-fields">
+    <div class="detail-wide"><dt>Para qué fue</dt><dd>{{ movement.description|default:"Sin motivo registrado" }}</dd></div>
+    <div><dt>Fecha</dt><dd>{{ movement.date|date:"d/m/Y"|default:"Sin fecha" }}</dd></div>
+    <div><dt>{% if movement.kind == "transfer" %}Cuenta de origen{% else %}Cuenta{% endif %}</dt><dd>{{ movement.account.name|default:"Sin cuenta" }}</dd></div>
+    {% if movement.kind == "transfer" %}<div><dt>Cuenta de destino</dt><dd>{{ movement.destination_account.name|default:"Sin cuenta de destino" }}</dd></div>{% endif %}
+    <div><dt>Categoría</dt><dd>{{ movement.get_category_display|default:"Sin categoría" }}</dd></div>
+  </dl>
+  <div class="detail-actions">
+    {% if not is_demo %}<a class="button primary" href="{% url 'edit' movement.pk %}">Editar</a>{% endif %}
+    {% if movement.receipt and not is_demo %}<a class="button subtle" href="{% url 'receipt' movement.pk %}" target="_blank" rel="noopener">Ver comprobante</a>{% endif %}
+  </div>
+  {% if movement.operation_id or movement.notes %}
+  <details class="detail-extra"><summary>Más detalles</summary><dl class="detail-fields">
+    {% if movement.operation_id %}<div class="detail-wide"><dt>Número de operación</dt><dd>{{ movement.operation_id }}</dd></div>{% endif %}
+    {% if movement.notes %}<div class="detail-wide"><dt>Notas</dt><dd>{{ movement.notes|linebreaksbr }}</dd></div>{% endif %}
+  </dl></details>
+  {% endif %}
+  {% if not is_demo %}<div class="detail-delete"><a class="text-link" href="{% url 'delete_movement' movement.pk %}">Eliminar pago</a></div>{% endif %}
+</article>
+{% endblock %}
