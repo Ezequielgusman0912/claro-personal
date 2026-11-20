@@ -27,9 +27,10 @@ Pendientes muestra solo registros por completar o revisar, sin totales de gastos
 confirmados. No representa deudas ni pagos pendientes de realizar. La busqueda
 y los filtros conservan el estado pendiente; para ver otros estados se usa
 Movimientos.
-El selector Apariencia de la barra superior ofrece Claro, Oscuro y Sistema.
+El boton de la barra superior muestra una luna para activar Oscuro y un sol
+para activar Claro.
 La preferencia se guarda solo en este navegador y se aplica antes de mostrar
-la pagina. Sistema sigue los cambios de apariencia del dispositivo.
+la pagina. Sin una eleccion guardada, sigue la apariencia del dispositivo.
 Los formularios usan controles de al menos 44 px y texto de 16 px para evitar
 el zoom automatico al escribir en iPhone. Filtros, categorias, imagen original,
 numero de operacion y notas quedan plegados hasta necesitarlos; los errores de

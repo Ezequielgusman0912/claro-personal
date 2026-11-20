@@ -12,7 +12,11 @@ function setup(saved = null, dark = false, blocked = false) {
   const events = {};
   const dataset = {};
   const status = {};
-  const selector = { addEventListener: (name, handler) => { events[name] = handler; } };
+  const attributes = new Map();
+  const button = {
+    addEventListener: (name, handler) => { events[name] = handler; },
+    setAttribute: (name, value) => attributes.set(name, value),
+  };
   const system = {
     matches: dark,
     addEventListener: (name, handler) => { events.system = handler; },
@@ -23,7 +27,7 @@ function setup(saved = null, dark = false, blocked = false) {
     document: {
       documentElement: { dataset },
       addEventListener: (name, handler) => { events[name] = handler; },
-      querySelector: (query) => query === "[data-theme-select]" ? selector : status,
+      querySelector: (query) => query === "[data-theme-toggle]" ? button : status,
     },
     window: {
       matchMedia: () => system,
@@ -42,47 +46,47 @@ function setup(saved = null, dark = false, blocked = false) {
     console: { warn: (...args) => warnings.push(args) },
   });
   events.DOMContentLoaded();
-  return { events, dataset, selector, system, storage, status, warnings };
+  return { events, dataset, attributes, system, storage, status, warnings };
 }
 
 test("uses system theme by default and follows system changes", () => {
   const app = setup(null, true);
   assert.equal(app.dataset.theme, "dark");
-  assert.equal(app.selector.value, "system");
+  assert.equal(app.attributes.get("aria-label"), "Activar modo claro");
   app.system.matches = false;
   app.events.system();
   assert.equal(app.dataset.theme, "light");
+  assert.equal(app.attributes.get("aria-label"), "Activar modo oscuro");
 });
 
 test("saved selection applies before rendering and overrides system", () => {
   const app = setup("light", true);
   assert.equal(app.dataset.theme, "light");
-  app.selector.value = "dark";
-  app.events.change();
+  app.events.click();
   assert.equal(app.dataset.theme, "dark");
   assert.equal(app.storage.get("cuentas-claras-theme"), "dark");
   app.system.matches = false;
   app.events.system();
   assert.equal(app.dataset.theme, "dark");
-  app.selector.value = "system";
-  app.events.change();
+  app.events.click();
   assert.equal(app.dataset.theme, "light");
+  assert.equal(app.storage.get("cuentas-claras-theme"), "light");
 });
 
 test("invalid stored values use system and other tabs synchronize", () => {
   const app = setup("invalid", true);
   assert.equal(app.dataset.theme, "dark");
   app.events.storage({ key: "cuentas-claras-theme", newValue: "light" });
-  assert.equal(app.selector.value, "light");
+  assert.equal(app.attributes.get("aria-label"), "Activar modo oscuro");
   assert.equal(app.dataset.theme, "light");
   app.events.storage({ key: null, newValue: null });
-  assert.equal(app.selector.value, "system");
+  assert.equal(app.dataset.theme, "dark");
+  assert.equal(app.attributes.get("aria-label"), "Activar modo claro");
 });
 
 test("blocked storage still allows theme changes and reports the failure", () => {
   const app = setup(null, false, true);
-  app.selector.value = "dark";
-  app.events.change();
+  app.events.click();
   assert.equal(app.dataset.theme, "dark");
   assert.match(app.status.textContent, /no se pudo guardar/);
   assert.equal(app.warnings.length, 2);
