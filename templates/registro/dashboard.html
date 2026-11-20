@@ -1,22 +1,24 @@
 {% extends "registro/base.html" %}
-{% block breadcrumb %}{% if movements_only %}Movimientos{% else %}Mis pagos{% endif %}{% endblock %}
+{% block breadcrumb %}{% if pending_only %}Pendientes{% elif movements_only %}Movimientos{% else %}Mis pagos{% endif %}{% endblock %}
 {% block content %}
 <section class="page-heading">
-  <h1>{% if movements_only %}Movimientos{% else %}Mis pagos{% endif %}</h1>
+  <h1>{% if pending_only %}Pendientes{% elif movements_only %}Movimientos{% else %}Mis pagos{% endif %}</h1>
   <div class="heading-actions"><a class="button primary" href="{{ new_url }}"><svg><use href="#i-up"/></svg>Cargar comprobante</a><a class="button subtle" href="{{ new_url }}#manual">Cargar a mano</a></div>
 </section>
+{% if pending_only %}<p class="muted">Movimientos guardados para completar o revisar. No son deudas ni pagos pendientes de realizar.</p>{% endif %}
 <div class="period-row"><strong>{{ month_label }}</strong><span class="soft-label">{{ currency }}</span></div>
-{% if not movements_only %}<section class="stats" aria-label="Resumen del período">
+{% if not movements_only and not pending_only %}<section class="stats" aria-label="Resumen del período">
   <article class="stat"><span>Gastos confirmados</span><div class="stat-number"><small>{% if currency == "USD" %}US${% else %}${% endif %}</small> {{ expense_total|floatformat:"2g" }}</div></article>
   <a class="stat pending-stat" href="{{ pending_url }}"><span>Pendientes</span><div class="stat-number">{{ pending_count }}<svg><use href="#i-chevron"/></svg></div></a>
 </section>{% endif %}
 <section class="panel movements" id="movimientos">
-  <div class="panel-heading"><h2>Movimientos <span class="count">{{ total_count }}</span></h2><a class="button subtle compact" href="{{ export_url }}"><svg><use href="#i-down"/></svg>Excel</a></div>
+  <div class="panel-heading"><h2>{% if pending_only %}Por completar{% else %}Movimientos{% endif %} <span class="count">{{ total_count }}</span></h2><a class="button subtle compact" href="{{ export_url }}"><svg><use href="#i-down"/></svg>Excel</a></div>
   <form class="filters" method="get" aria-label="Filtrar movimientos">
     {% if is_demo and movements_only %}<input type="hidden" name="screen" value="movements">{% endif %}
-    <div class="search-row"><label class="search-field"><svg><use href="#i-search"/></svg><span class="sr-only">Buscar movimientos</span><input type="search" name="q" value="{{ filters.q.value|default:'' }}" placeholder="Buscar un pago"></label><button class="button subtle" type="submit">Buscar</button></div>
+    {% if pending_only %}<input type="hidden" name="status" value="pending">{% endif %}
+    <div class="search-row"><label class="search-field"><svg><use href="#i-search"/></svg><span class="sr-only">Buscar movimientos</span><input type="search" name="q" value="{{ filters.q.value|default:'' }}" placeholder="{% if pending_only %}Buscar un pendiente{% else %}Buscar un pago{% endif %}"></label><button class="button subtle" type="submit">Buscar</button></div>
     <details class="filter-details" {% if filters.errors or filters.account.value or filters.status.value or currency != "ARS" %}open{% endif %}><summary>Filtros</summary>
-      <div class="filter-options"><label>Cuenta{{ filters.account }}</label><label>Estado{{ filters.status }}</label><label>Mes<input type="month" name="month" value="{{ filters.month.value|default:'' }}"></label><label>Moneda{{ filters.currency }}</label><button class="button primary" type="submit">Aplicar</button></div>
+      <div class="filter-options"><label>Cuenta{{ filters.account }}</label>{% if not pending_only %}<label>Estado{{ filters.status }}</label>{% endif %}<label>Mes<input type="month" name="month" value="{{ filters.month.value|default:'' }}"></label><label>Moneda{{ filters.currency }}</label><button class="button primary" type="submit">Aplicar</button></div>
     </details>
   </form>
   {% if filters.errors %}<div class="message error">{{ filters.errors }}</div>{% endif %}
@@ -31,11 +33,11 @@
       <td role="cell" class="open-cell"><a class="row-open" href="{% if is_demo %}{% url 'demo' %}?detail={{ row.pk }}{% else %}{% url 'movement_detail' row.pk %}{% endif %}" aria-label="Ver detalle de {{ row.recipient|default:'movimiento' }}"><svg><use href="#i-chevron"/></svg></a></td>
     </tr>
   {% empty %}
-    <tr role="row" class="empty-row"><td role="cell" colspan="6"><div class="empty-state"><svg><use href="#i-file"/></svg><h3>No hay pagos en esta vista</h3><a class="button primary" href="{{ new_url }}">Agregar pago</a></div></td></tr>
+    <tr role="row" class="empty-row"><td role="cell" colspan="6"><div class="empty-state"><svg><use href="#i-file"/></svg><h3>{% if pending_only %}No hay movimientos por completar en esta vista{% else %}No hay pagos en esta vista{% endif %}</h3>{% if not pending_only %}<a class="button primary" href="{{ new_url }}">Agregar pago</a>{% endif %}</div></td></tr>
   {% endfor %}
   </tbody></table></div>
 </section>
-{% if categories and not movements_only %}
+{% if categories and not movements_only and not pending_only %}
 <details class="panel category-panel"><summary>Gastos por categoría</summary>{% for category in categories %}<div class="category-item"><div><span>{{ category.name }}</span><strong>{{ category.percent }}%</strong></div><div class="category-track"><span style="width:{{ category.percent }}%"></span></div><small>{% if currency == "USD" %}US${% else %}${% endif %}{{ category.amount|floatformat:"2g" }}</small></div>{% endfor %}</details>
 {% endif %}
 {% endblock %}

@@ -121,6 +121,7 @@ def filtered_context(request, accounts, rows, is_demo=False):
     base = reverse("demo" if is_demo else "dashboard")
     return {
         "is_demo": is_demo,
+        "pending_only": params.get("status") == "pending",
         "movements_only": (
             request.GET.get("screen") == "movements" if is_demo
             else request.resolver_match.url_name == "movements"

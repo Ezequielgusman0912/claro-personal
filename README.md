@@ -23,6 +23,10 @@ Al abrir un movimiento se muestra una ficha de consulta compacta con importe,
 motivo, fecha, cuenta, categoria y estado. Notas y numero de operacion quedan
 plegados en Mas detalles. El boton Editar abre el formulario; guardar o volver
 regresa a la ficha. La demo muestra la misma ficha sin acciones de escritura.
+Pendientes muestra solo registros por completar o revisar, sin totales de gastos
+confirmados. No representa deudas ni pagos pendientes de realizar. La busqueda
+y los filtros conservan el estado pendiente; para ver otros estados se usa
+Movimientos.
 Los formularios usan controles de al menos 44 px y texto de 16 px para evitar
 el zoom automatico al escribir en iPhone. Filtros, categorias, imagen original,
 numero de operacion y notas quedan plegados hasta necesitarlos; los errores de
