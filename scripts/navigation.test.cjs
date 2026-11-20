@@ -11,7 +11,7 @@ const source = fs.readFileSync(
 function setup(href = "https://cuentas.test/") {
   const events = {};
   const status = {};
-  const links = ["/", "/#movimientos", "/?status=pending", "/cuentas/"].map((url, index) => {
+  const links = ["/", "/movimientos/", "/?status=pending", "/cuentas/"].map((url, index) => {
     const classes = new Set(index === 0 ? ["active"] : []);
     const attributes = new Map();
     return {
@@ -67,13 +67,14 @@ test("switches selection immediately and shows loading only on the target", () =
   assert.equal(app.links[3].classList.contains("is-loading"), true);
 });
 
-test("hash navigation selects Movimientos without a loading spinner", () => {
+test("Movimientos loads its own page and remains selected after arrival", () => {
   const app = setup();
   app.click(1);
   assert.equal(app.links[1].classList.contains("active"), true);
-  assert.equal(app.links[1].classList.contains("is-loading"), false);
+  assert.equal(app.links[1].classList.contains("is-loading"), true);
   app.window.location.href = app.links[1].href;
-  app.events.hashchange();
+  app.events.pageshow();
+  assert.equal(app.links[1].classList.contains("is-loading"), false);
   assert.equal(app.links[1].attributes.get("aria-current"), "location");
   assert.equal(app.links[0].classList.contains("active"), false);
 });

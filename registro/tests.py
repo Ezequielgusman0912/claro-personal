@@ -91,6 +91,31 @@ class PaymentsTests(TestCase):
         workbook = load_workbook(BytesIO(download.content))
         self.assertEqual(workbook.active.max_row, 9)
 
+    def test_movements_screen_prioritizes_list_without_summary(self):
+        self.movement()
+        response = self.client.get(reverse("movements"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<h1>Movimientos</h1>")
+        self.assertContains(response, 'aria-label="Filtrar movimientos"')
+        self.assertContains(response, "Compra semanal")
+        self.assertNotContains(response, 'aria-label="Resumen del período"')
+        self.assertNotContains(response, "Gastos por categoría")
+        self.assertEqual(response.context["total_count"], 1)
+        filtered = self.client.get(reverse("movements"), {"q": "inexistente"})
+        self.assertEqual(filtered.context["total_count"], 0)
+        self.assertContains(filtered, "No hay pagos en esta vista")
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse("movements")).status_code, 302)
+
+    def test_demo_movements_screen_preserves_filters_and_no_writes(self):
+        response = self.client.get("/demo/?screen=movements")
+        self.assertContains(response, "<h1>Movimientos</h1>")
+        self.assertContains(response, 'name="screen" value="movements"')
+        self.assertNotContains(response, 'aria-label="Resumen del período"')
+        self.assertNotContains(response, "Gastos por categoría")
+        self.assertEqual(self.client.post("/demo/?screen=movements").status_code, 405)
+        self.assertFalse(Movement.objects.exists())
+
     def test_demo_rejects_writes(self):
         response = self.client.post("/demo/", self.valid_data())
         self.assertEqual(response.status_code, 405)

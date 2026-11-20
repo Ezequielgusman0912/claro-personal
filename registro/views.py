@@ -120,7 +120,12 @@ def filtered_context(request, accounts, rows, is_demo=False):
         label = f"{MONTHS[parsed.month]} {parsed.year}"
     base = reverse("demo" if is_demo else "dashboard")
     return {
-        "is_demo": is_demo, "rows": visible, "accounts": accounts, "filters": filters,
+        "is_demo": is_demo,
+        "movements_only": (
+            request.GET.get("screen") == "movements" if is_demo
+            else request.resolver_match.url_name == "movements"
+        ),
+        "rows": visible, "accounts": accounts, "filters": filters,
         "month_label": label, "currency": params.get("currency", "ARS"),
         "expense_total": expense_total, "pending_count": pending_count,
         "confirmed_count": confirmed_count, "transfers_count": transfers_count,

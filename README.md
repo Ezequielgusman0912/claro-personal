@@ -16,6 +16,9 @@ La seccion activa y el foco de teclado conservan sus indicadores.
 Al tocar una seccion de la navegacion, el resaltado cambia inmediatamente y se
 muestra un spinner mientras carga otra pagina. Los saltos dentro de la misma
 pagina no muestran carga; al volver con el navegador se restaura la seleccion.
+Movimientos tiene su propia pantalla en `/movimientos/`: la lista, la busqueda,
+los filtros y la exportacion son el contenido principal, sin tarjetas de totales
+ni categorias. Resumen conserva los indicadores del periodo.
 Los formularios usan controles de al menos 44 px y texto de 16 px para evitar
 el zoom automatico al escribir en iPhone. Filtros, categorias, imagen original,
 numero de operacion y notas quedan plegados hasta necesitarlos; los errores de
