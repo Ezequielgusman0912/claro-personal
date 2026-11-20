@@ -36,6 +36,7 @@
     <a class="nav-item {% if request.GET.status == 'pending' %}active{% endif %}" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}?status=pending"><svg><use href="#i-clock"/></svg>Pendientes{% if pending_count %}<span class="nav-badge">{{ pending_count }}</span>{% endif %}</a>
     <a class="nav-item {% if request.resolver_match.url_name == 'accounts' or request.GET.screen == 'accounts' %}active{% endif %}" href="{% if is_demo %}{% url 'demo' %}?screen=accounts{% else %}{% url 'accounts' %}{% endif %}"><svg><use href="#i-wallet"/></svg>Mis cuentas</a>
   </nav>
+  <p class="sr-only" role="status" aria-live="polite" data-navigation-status></p>
 </aside>
 {% endif %}
 <div class="app{% if not user.is_authenticated and not is_demo %} app-login{% endif %}">

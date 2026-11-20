@@ -1,4 +1,51 @@
 (() => {
+  const navigation = document.querySelector(".sidebar nav");
+  if (navigation) {
+    const links = [...navigation.querySelectorAll(".nav-item")];
+    const initialActive = links.find((link) => link.classList.contains("active"));
+    const navigationStatus = document.querySelector("[data-navigation-status]");
+
+    function selectLink(selected, loading = false) {
+      for (const link of links) {
+        link.classList.toggle("active", link === selected);
+        link.classList.toggle("is-loading", link === selected && loading);
+        if (link === selected) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+        if (link === selected && loading) link.setAttribute("aria-busy", "true");
+        else link.removeAttribute("aria-busy");
+      }
+      if (navigationStatus) {
+        navigationStatus.textContent = loading ? "Cargando sección…" : "";
+      }
+    }
+
+    function restoreNavigation() {
+      const current = new URL(window.location.href);
+      const selected = links.find((link) => {
+        const target = new URL(link.href);
+        return target.pathname === current.pathname
+          && target.search === current.search && target.hash === current.hash;
+      });
+      selectLink(selected || initialActive);
+    }
+
+    navigation.addEventListener("click", (event) => {
+      const link = event.target.closest(".nav-item");
+      if (!links.includes(link) || event.defaultPrevented || event.button !== 0
+          || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey
+          || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+      const target = new URL(link.href);
+      const current = new URL(window.location.href);
+      const sameDocument = target.origin === current.origin
+        && target.pathname === current.pathname && target.search === current.search;
+      selectLink(link, !sameDocument);
+      if (sameDocument && target.hash === current.hash) event.preventDefault();
+    });
+    window.addEventListener("hashchange", restoreNavigation);
+    window.addEventListener("pageshow", restoreNavigation);
+    restoreNavigation();
+  }
+
   const kind = document.querySelector("#id_kind");
   const destination = document.querySelector("[data-destination]");
   const destinationInput = document.querySelector("#id_destination_account");
