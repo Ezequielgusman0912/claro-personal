@@ -4,8 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="light dark">
   <title>{% block title %}Cuentas Claras · Tus pagos, en orden{% endblock %}</title>
+  <script src="{% static 'registro/theme.js' %}"></script>
   <link rel="stylesheet" href="{% static 'registro/app.css' %}">
   <script defer src="{% static 'registro/app.js' %}"></script>
 </head>
@@ -40,7 +41,10 @@
 </aside>
 {% endif %}
 <div class="app{% if not user.is_authenticated and not is_demo %} app-login{% endif %}">
-  <header class="topbar"><a class="mobile-brand" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}">Cuentas Claras</a><div class="breadcrumb">{% block breadcrumb %}Mis pagos{% endblock %}</div><div class="topbar-right">{% if is_demo %}<a class="text-link" href="{% url 'login' %}">Ingresar</a>{% elif user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button subtle compact" type="submit" aria-label="Cerrar sesión">Salir</button></form>{% endif %}</div></header>
+  <header class="topbar"><a class="mobile-brand" href="{% if is_demo %}{% url 'demo' %}{% else %}{% url 'dashboard' %}{% endif %}">Cuentas Claras</a><div class="breadcrumb">{% block breadcrumb %}Mis pagos{% endblock %}</div><div class="topbar-right">
+    <label class="theme-control"><span class="sr-only">Apariencia</span><select data-theme-select aria-label="Apariencia"><option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Oscuro</option></select></label>
+    <span class="sr-only" role="status" data-theme-status></span>
+    {% if is_demo %}<a class="text-link" href="{% url 'login' %}">Ingresar</a>{% elif user.is_authenticated %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button subtle compact" type="submit" aria-label="Cerrar sesión">Salir</button></form>{% endif %}</div></header>
   <main id="main">
     {% if is_demo %}<div class="demo-notice">Demo · Datos ficticios, sin guardar cambios.</div>{% endif %}
     {% for message in messages %}<div role="status" class="message {{ message.tags }}">{{ message }}</div>{% endfor %}

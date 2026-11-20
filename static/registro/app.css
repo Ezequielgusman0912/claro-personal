@@ -1,10 +1,12 @@
 :root {
+  color-scheme: light;
   --bg: #f7f8fa;
   --ink: #1c2839;
   --muted: #647082;
   --line: #e4e9ed;
   --green: #23755d;
   --sidebar: #172433;
+  --surface: #fff;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif; font-size: 15px; -webkit-font-smoothing: antialiased; }
@@ -34,7 +36,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .nav-badge { margin-left: auto; background: #c5e0c8; color: #253e31; min-width: 20px; padding: 2px 4px; border-radius: 5px; text-align: center; font-size: 11px; font-weight: 700; }
 .app { margin-left: 220px; }
 .app.app-login { margin-left: 0; }
-.topbar { min-height: 64px; background: white; border-bottom: 1px solid var(--line); padding: 8px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.topbar { min-height: 64px; background: var(--surface); border-bottom: 1px solid var(--line); padding: 8px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.topbar-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.theme-control select { width: auto; min-height: 44px; padding: 8px; font-size: 14px; }
 .breadcrumb { color: var(--muted); font-size: 14px; }
 .mobile-brand { display: none; }
 .text-link { font-weight: 600; color: var(--green); }
@@ -272,4 +276,55 @@ button:disabled { opacity: .7; cursor: wait; }
   .row-open { min-height: 48px; }
   .amount-cell strong { font-size: 15px; }
   .account-link { font-size: 14px; }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141b23;
+  --surface: #1e2935;
+  --ink: #e8eef5;
+  --muted: #afbdcc;
+  --line: #3d4d5e;
+  --green: #88d6b8;
+  --sidebar: #18212b;
+}
+[data-theme="dark"] .panel, [data-theme="dark"] .stat,
+[data-theme="dark"] .subtle, [data-theme="dark"] .skip-link,
+[data-theme="dark"] input, [data-theme="dark"] select,
+[data-theme="dark"] textarea { background: var(--surface); }
+[data-theme="dark"] .subtle, [data-theme="dark"] input,
+[data-theme="dark"] select, [data-theme="dark"] textarea,
+[data-theme="dark"] .search-field { border-color: var(--line); color: var(--ink); }
+[data-theme="dark"] .search-field input { background: transparent; }
+[data-theme="dark"] input::placeholder { color: var(--muted); }
+[data-theme="dark"] .primary { background: #286c55; color: #fff; }
+[data-theme="dark"] .soft-label, [data-theme="dark"] .count,
+[data-theme="dark"] th, [data-theme="dark"] .category-track { background: #2b3948; color: var(--muted); }
+[data-theme="dark"] .demo-notice, [data-theme="dark"] .message,
+[data-theme="dark"] .status.confirmed, [data-theme="dark"] .recipient-avatar { background: #243f34; color: #a7e1bd; border-color: #456754; }
+[data-theme="dark"] .pending-stat, [data-theme="dark"] .message.warning,
+[data-theme="dark"] .status.pending, [data-theme="dark"] .pending-avatar { background: #423522; color: #f0cf91; border-color: #746044; }
+[data-theme="dark"] .pending-stat .stat-number,
+[data-theme="dark"] .missing-description { color: #f0cf91; }
+[data-theme="dark"] .message.info, [data-theme="dark"] .account-logo.mp { background: #233b50; color: #b7dbfa; border-color: #4a6781; }
+[data-theme="dark"] .ocr-status, [data-theme="dark"] .row-open { color: #b7dbfa; }
+[data-theme="dark"] .message.error, [data-theme="dark"] .errorlist { background: #492b30; color: #ffb5b5; border-color: #89525a; }
+[data-theme="dark"] .detail-delete a { color: #ffb5b5; }
+[data-theme="dark"] .transfer-avatar { background: #3d3150; color: #d6bdf5; }
+[data-theme="dark"] .account-logo { background: #2b3948; color: var(--ink); }
+[data-theme="dark"] .account-logo.galicia { background: #453325; color: #f6c39b; }
+[data-theme="dark"] .form-panel input[type="file"],
+[data-theme="dark"] .receipt-preview { background: #19222c; }
+@media (max-width: 900px) {
+  [data-theme="dark"] .sidebar { background: var(--surface); }
+  [data-theme="dark"] .nav-item { color: var(--muted); }
+  [data-theme="dark"] .nav-item.active { background: #294b3d; color: #a7e1bd; }
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="dark"] .primary:hover { background: #205c48; }
+  [data-theme="dark"] .subtle:hover, [data-theme="dark"] tbody tr:hover { background: #2b3948; }
+  [data-theme="dark"] .pending-stat:hover { background: #514029; }
+  @media (max-width: 900px) {
+    [data-theme="dark"] .nav-item:hover { background: #294b3d; color: #a7e1bd; }
+  }
 }
