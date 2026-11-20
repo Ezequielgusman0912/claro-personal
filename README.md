@@ -10,6 +10,9 @@ Interfaz reducida a pagos, pendientes, comprobantes y cuentas. Sin textos
 promocionales ni paneles de ayuda. Los errores y avisos de revision siguen visibles.
 En celular y tablet (hasta 900 px) los movimientos se presentan como tarjetas
 sin desplazamiento horizontal y la navegacion queda abajo, con etiquetas.
+El resaltado al pasar el mouse solo se aplica con un puntero preciso que admite
+hover; en pantallas tactiles no queda pegado despues de tocar un boton.
+La seccion activa y el foco de teclado conservan sus indicadores.
 Los formularios usan controles de al menos 44 px y texto de 16 px para evitar
 el zoom automatico al escribir en iPhone. Filtros, categorias, imagen original,
 numero de operacion y notas quedan plegados hasta necesitarlos; los errores de
