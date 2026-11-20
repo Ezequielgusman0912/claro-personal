@@ -42,6 +42,42 @@
     return libraryPromise;
   }
 
+  async function prepareImage(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error(
+          "No pudimos abrir esta imagen. Probá guardar una nueva captura en JPG o PNG.",
+        ));
+        image.src = url;
+      });
+      const width = image.naturalWidth;
+      const height = image.naturalHeight;
+      if (!width || !height) {
+        throw new Error("No pudimos abrir esta imagen. Elegí otra captura.");
+      }
+      if (width * height > 20_000_000) {
+        throw new Error("La imagen es demasiado grande. Elegí una de menos de 20 megapíxeles.");
+      }
+      const scale = Math.min(1, 3200 / Math.max(width, height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        throw new Error("Este navegador no pudo preparar la imagen. Probá abrir la página en Chrome actualizado.");
+      }
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return canvas;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
   function setBusy(busy) {
     const complete = upload.dataset.ocrComplete === "true";
     button.disabled = busy || complete;
@@ -82,13 +118,7 @@
 
     let worker;
     try {
-      const bitmap = await createImageBitmap(file);
-      const tooManyPixels = bitmap.width * bitmap.height > 20_000_000;
-      bitmap.close();
-      if (tooManyPixels) {
-        throw new Error("La imagen es demasiado grande. Elegí una de menos de 20 megapíxeles.");
-      }
-
+      const image = await prepareImage(file);
       const Tesseract = await loadLibrary();
       worker = await Tesseract.createWorker("spa", 1, {
         workerPath: upload.dataset.workerUrl,
@@ -103,7 +133,7 @@
           }
         },
       });
-      const result = await worker.recognize(file);
+      const result = await worker.recognize(image);
       const text = result.data.text.trim();
       if (!text) {
         throw new Error("No pudimos leer texto. Elegí otro comprobante o cargá los datos a mano.");

@@ -102,7 +102,11 @@ Esto no certifica precision en otros formatos ni en comprobantes de Galicia.
 Para Vercel, el formulario prepara OCR en el navegador con assets propios
 versionados de Tesseract.js, Tesseract core y el modelo `spa` compacto.
 En la lectura normal del navegador, la imagen permanece en el dispositivo y nunca
-se envia al servidor. Solo se transmite temporalmente el texto detectado para
+se envia al servidor. Para compatibilidad con celulares, se abre con el lector de
+imagenes del navegador y se prepara sobre fondo blanco, con un lado maximo de
+3200 pixeles, antes del OCR. No se amplia ni se guarda esta copia temporal.
+Se admiten hasta 20 megapixeles en el original y 8 MB por archivo.
+Solo se transmite temporalmente el texto detectado para
 extraer propuestas de campos; el texto completo no se conserva. Las propuestas
 completan el formulario y no crean ni guardan un movimiento. El usuario debe
 revisarlas y elegir explicitamente **Guardar pendiente** o **Confirmar**. Si la
@@ -116,6 +120,8 @@ El primer uso descarga y almacena en cache del navegador aproximadamente 6 MB de
 lector y datos. Si el dispositivo no puede leer la imagen, ofrece completar los
 datos a mano. El OCR del servidor queda como alternativa local y tampoco almacena
 el archivo recibido.
+
+Prueba de carga de capturas: `node --test scripts/receipt-upload.test.cjs`.
 
 El build instala las dependencias JavaScript bloqueadas en `package-lock.json`,
 copia de `node_modules` solo los archivos necesarios y ejecuta `collectstatic`.
